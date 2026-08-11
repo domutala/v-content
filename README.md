@@ -121,6 +121,7 @@ const nav = await queryCollection("docs").navigation();
 
 ### Build-time pipeline
 
+```
 ┌─────────────────┐       ┌──────────────┐       ┌─────────────────┐
 │  MD / YAML      │─────▶│ MDC Pipeline │─────▶│   HTML + Meta   │
 │  / JSON files   │       │ (unified)    │       │   + TOC         │
@@ -146,6 +147,7 @@ const nav = await queryCollection("docs").navigation();
          │better-sqlite3 │           │SQLite WASM  │
          └───────────────┘           │  (Worker)   │
                                      └─────────────┘
+```
 
 At build time, the plugin:
 
