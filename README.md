@@ -315,4 +315,4 @@ The project uses `pnpm` workspaces. The `playground/` directory contains a worki
 
 ## License
 
-[MIT](./LICENSE.md)
+[MIT](./LICENSE)
