@@ -59,6 +59,8 @@
   ],
   "scripts": {
     "playground": "pnpm --filter v-content-playground dev",
+    "prepublishOnly": "npm run build",
+    "typecheck": "tsc --noEmit",
     "build": "tsdown"
   },
   "dependencies": {
