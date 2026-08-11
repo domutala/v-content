@@ -60,24 +60,24 @@ import vContent from "v-content/vite";
 import { defineCollection } from "v-content";
 
 export default defineConfig({
-  plugins: [
-    vue(),
-    vContent({
-      collections: {
-        docs: defineCollection({
-          type: "page",
-          source: {
-            include: "docs/**/*.md",
-            exclude: "docs/**/*.draft.md",
-          },
-        }),
-        authors: defineCollection({
-          type: "data",
-          source: "authors/**/*.yml",
-        }),
-      },
-    }),
-  ],
+	plugins: [
+		vue(),
+		vContent({
+			collections: {
+				docs: defineCollection({
+					type: "page",
+					source: {
+						include: "docs/**/*.md",
+						exclude: "docs/**/*.draft.md",
+					},
+				}),
+				authors: defineCollection({
+					type: "data",
+					source: "authors/**/*.yml",
+				}),
+			},
+		}),
+	],
 });
 ```
 
@@ -107,19 +107,45 @@ const nav = await queryCollection("docs").navigation();
 </script>
 
 <template>
-  <aside>
-    <NavTree :items="nav" />
-  </aside>
-  <article v-if="doc">
-    <h1>{{ doc.meta.title }}</h1>
-    <MDC :value="doc.html" />
-  </article>
+	<aside>
+		<NavTree :items="nav" />
+	</aside>
+	<article v-if="doc">
+		<h1>{{ doc.meta.title }}</h1>
+		<MDC :value="doc.html" />
+	</article>
 </template>
 ```
 
 ## Architecture
 
 ### Build-time pipeline
+
+┌─────────────────┐       ┌──────────────┐       ┌─────────────────┐
+│  MD / YAML      │─────▶│ MDC Pipeline │─────▶│   HTML + Meta   │
+│  / JSON files   │       │ (unified)    │       │   + TOC         │
+└─────────────────┘       └──────────────┘       └─────────────────┘
+                                                      │
+                             ┌────────────────────────┘
+                             ▼
+                      ┌──────────────┐
+                      │  Compress    │
+                      │  (JSON)      │
+                      └──────────────┘
+                             │
+                             ▼
+                ┌────────────────────────┐
+                │  virtual:v-content/    │
+                │      compressed        │
+                └────────────────────────┘
+                             │
+                ┌────────────┴────────────┐
+                ▼                         ▼
+         ┌───────────────┐           ┌─────────────┐
+         │  SSR / Node   │           │   Browser   │
+         │better-sqlite3 │           │SQLite WASM  │
+         └───────────────┘           │  (Worker)   │
+                                     └─────────────┘
 
 At build time, the plugin:
 
@@ -171,30 +197,30 @@ Defines a content collection.
 function defineCollection<T>(definition: T): T;
 
 interface CollectionDefinition {
-  type: "page" | "data";
-  source: string | CollectionSource | (string | CollectionSource)[];
-  schema?: SchemaValidator;
+	type: "page" | "data";
+	source: string | CollectionSource | (string | CollectionSource)[];
+	schema?: SchemaValidator;
 }
 
 interface CollectionSource {
-  include: string;
-  exclude?: string | string[];
-  prefix?: string;
-  cwd?: string;
+	include: string;
+	exclude?: string | string[];
+	prefix?: string;
+	cwd?: string;
 }
 
 type SchemaValidator = <T>(data: unknown, filePath: string) => T;
 ```
 
-| Property | Type | Description |
-|---|---|---|
-| `type` | `"page" \| "data"` | `"page"` for Markdown (produces HTML + meta); `"data"` for YAML/JSON (produces structured data) |
-| `source` | `string \| CollectionSource \| array` | File glob(s) defining the collection scope |
-| `source.include` | `string` | Glob pattern of files to include |
-| `source.exclude` | `string \| string[]` | Patterns to exclude |
-| `source.prefix` | `string` | Path prefix prepended to the generated URL/path |
-| `source.cwd` | `string` | Working directory relative to the content root |
-| `schema` | `(data, filePath) => T` | Optional runtime validation / transformation function |
+| Property         | Type                                  | Description                                                                                     |
+| ---------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `type`           | `"page" \| "data"`                    | `"page"` for Markdown (produces HTML + meta); `"data"` for YAML/JSON (produces structured data) |
+| `source`         | `string \| CollectionSource \| array` | File glob(s) defining the collection scope                                                      |
+| `source.include` | `string`                              | Glob pattern of files to include                                                                |
+| `source.exclude` | `string \| string[]`                  | Patterns to exclude                                                                             |
+| `source.prefix`  | `string`                              | Path prefix prepended to the generated URL/path                                                 |
+| `source.cwd`     | `string`                              | Working directory relative to the content root                                                  |
+| `schema`         | `(data, filePath) => T`               | Optional runtime validation / transformation function                                           |
 
 ### `queryCollection(name)`
 
@@ -202,18 +228,18 @@ Returns a `CollectionQuery` instance for the given collection name.
 
 ```ts
 interface CollectionQuery<T> {
-  path(path: string): CollectionQuery<T>;
-  order(direction?: "ASC" | "DESC"): CollectionQuery<T>;
-  limit(n: number): CollectionQuery<T>;
-  all(): Promise<T[]>;
-  first(): Promise<T | undefined>;
-  navigation(): Promise<NavigationItem[]>;
+	path(path: string): CollectionQuery<T>;
+	order(direction?: "ASC" | "DESC"): CollectionQuery<T>;
+	limit(n: number): CollectionQuery<T>;
+	all(): Promise<T[]>;
+	first(): Promise<T | undefined>;
+	navigation(): Promise<NavigationItem[]>;
 }
 
 interface NavigationItem {
-  title: string;
-  path: string;
-  children?: NavigationItem[];
+	title: string;
+	path: string;
+	children?: NavigationItem[];
 }
 ```
 
@@ -228,12 +254,12 @@ The `navigation()` method ignores any active filters and returns a nested tree b
 import type { ResolvedPageEntry } from "v-content";
 
 const props = defineProps<{
-  entry: ResolvedPageEntry;
+	entry: ResolvedPageEntry;
 }>();
 </script>
 
 <template>
-  <MDC :value="entry.html" />
+	<MDC :value="entry.html" />
 </template>
 ```
 
@@ -252,38 +278,38 @@ Recursive renderer that converts `hast` nodes into Vue VNodes. Handles:
 
 The plugin is implemented as an `unplugin`, exposed via framework-specific submodules:
 
-| Bundler | Import |
-|---|---|
-| Vite | `import vContent from "v-content/vite"` |
-| Rollup | `import vContent from "v-content/rollup"` |
-| Webpack | `import vContent from "v-content/webpack"` |
-| esbuild | `import vContent from "v-content/esbuild"` |
-| Rspack | `import vContent from "v-content/rspack"` |
-| Farm | `import vContent from "v-content/farm"` |
-| Bun | `import vContent from "v-content/bun"` |
+| Bundler  | Import                                      |
+| -------- | ------------------------------------------- |
+| Vite     | `import vContent from "v-content/vite"`     |
+| Rollup   | `import vContent from "v-content/rollup"`   |
+| Webpack  | `import vContent from "v-content/webpack"`  |
+| esbuild  | `import vContent from "v-content/esbuild"`  |
+| Rspack   | `import vContent from "v-content/rspack"`   |
+| Farm     | `import vContent from "v-content/farm"`     |
+| Bun      | `import vContent from "v-content/bun"`      |
 | Unloader | `import vContent from "v-content/unloader"` |
 
 Each submodule re-exports the same underlying plugin configured for the respective bundler's hook system.
 
 ## Comparison with Nuxt Content
 
-| Dimension | v-content | Nuxt Content |
-|---|---|---|
-| **Framework coupling** | Vue 3 only (any setup) | Nuxt only |
-| **Bundler support** | 8+ via `unplugin` | Nuxt / Nitro only |
-| **Build tool** | `tsdown` + `unplugin` | Nuxt kit + Nitro |
-| **Markdown engine** | `unified` + `remark-mdc` | `unified` + `remark-mdc` |
-| **Query backend** | SQLite (`better-sqlite3` / WASM) | In-memory JSON / Nitro storage |
-| **Query API surface** | `path`, `order`, `limit`, `all`, `first`, `navigation` | Richer (full-text search, `$contains`, `$in`, etc.) |
-| **MDC components** | ✅ Full support | ✅ Full support |
-| **Auto-navigation** | ✅ Zero-config | ✅ Zero-config |
-| **Full-text search** | Not implemented | ✅ Built-in |
-| **Content sources** | Local filesystem only | Local + remote (GitHub, etc.) |
-| **Nuxt Studio** | ❌ | ✅ |
-| **SSR database** | Optional `better-sqlite3` | First-class via Nitro |
-| **Client database** | SQLite WASM in Web Worker | JSON payload |
-| **Type generation** | `unimport` + manual `.d.ts` | Nuxt schema + types |
-| **Bundle size** | Tree-shakeable, minimal runtime | Tied to Nuxt ecosystem |
+| Dimension              | v-content                                              | Nuxt Content                                        |
+| ---------------------- | ------------------------------------------------------ | --------------------------------------------------- |
+| **Framework coupling** | Vue 3 only (any setup)                                 | Nuxt only                                           |
+| **Bundler support**    | 8+ via `unplugin`                                      | Nuxt / Nitro only                                   |
+| **Build tool**         | `tsdown` + `unplugin`                                  | Nuxt kit + Nitro                                    |
+| **Markdown engine**    | `unified` + `remark-mdc`                               | `unified` + `remark-mdc`                            |
+| **Query backend**      | SQLite (`better-sqlite3` / WASM)                       | In-memory JSON / Nitro storage                      |
+| **Query API surface**  | `path`, `order`, `limit`, `all`, `first`, `navigation` | Richer (full-text search, `$contains`, `$in`, etc.) |
+| **MDC components**     | ✅ Full support                                        | ✅ Full support                                     |
+| **Auto-navigation**    | ✅ Zero-config                                         | ✅ Zero-config                                      |
+| **Full-text search**   | Not implemented                                        | ✅ Built-in                                         |
+| **Content sources**    | Local filesystem only                                  | Local + remote (GitHub, etc.)                       |
+| **Nuxt Studio**        | ❌                                                     | ✅                                                  |
+| **SSR database**       | Optional `better-sqlite3`                              | First-class via Nitro                               |
+| **Client database**    | SQLite WASM in Web Worker                              | JSON payload                                        |
+| **Type generation**    | `unimport` + manual `.d.ts`                            | Nuxt schema + types                                 |
+| **Bundle size**        | Tree-shakeable, minimal runtime                        | Tied to Nuxt ecosystem                              |
 
 **When to use v-content:**
 
