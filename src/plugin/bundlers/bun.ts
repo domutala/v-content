@@ -2,7 +2,7 @@ import Components from "unplugin-vue-components";
 
 import { ContentConfig } from "../../collection/collection.js";
 import { initContent } from "../../init.js";
-import plugin from "../index.js";
+import plugin from "../unplugin.js";
 import { join, resolve } from "node:path";
 
 export default async function <TConfig extends ContentConfig | undefined>(

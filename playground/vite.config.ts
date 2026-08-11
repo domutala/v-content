@@ -4,8 +4,8 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import vueDevTools from "vite-plugin-vue-devtools";
 
-import vContent from "../src/plugin/bundlers/vite";
-import { defineCollection } from "../src";
+import vContent from "../src/plugin/bundlers/vite.js";
+import { defineCollection } from "../src/index.js";
 
 // https://vite.dev/config/
 export default defineConfig({

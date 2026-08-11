@@ -4,8 +4,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { createUnplugin } from "unplugin";
 import { createUnimport } from "unimport";
 
-import type { ContentConfig } from "../collection";
-import { normalizeDir } from "../utils/dir";
+import type { ContentConfig } from "../collection/index.js";
+import { normalizeDir } from "../utils/dir.js";
 
 const COMPRESSED_MODULE_ID = "virtual:v-content/compressed";
 const RESOLVED_COMPRESSED_MODULE_ID = "\0" + COMPRESSED_MODULE_ID;
