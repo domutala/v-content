@@ -1,6 +1,6 @@
 {
   "name": "v-content",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": false,
   "license": "MIT",
   "type": "module",
@@ -64,9 +64,12 @@
     "build": "tsdown"
   },
   "dependencies": {
+    "@shikijs/transformers": "^4.4.3",
     "@sqlite.org/sqlite-wasm": "3.53.0-build1",
+    "chokidar": "^5.0.0",
     "db0": "^0.3.4",
     "fast-glob": "^3.3.3",
+    "minimatch": "^10.2.6",
     "rehype": "^13.0.2",
     "rehype-external-links": "^3.0.0",
     "rehype-minify-whitespace": "^6.0.2",
@@ -88,8 +91,8 @@
     "to-vfile": "^8.0.0",
     "unified": "^11.0.5",
     "unimport": "^6.4.0",
+    "unist-util-visit": "^5.1.0",
     "unplugin": "^3.3.0",
-    "unplugin-vue-components": "^32.1.0",
     "vfile": "^6.0.3",
     "vue": "^3.5.40",
     "vue-router": "^5.2.0",
@@ -100,6 +103,7 @@
     "@eslint/js": "^10.0.1",
     "@eslint/json": "^2.0.1",
     "@eslint/markdown": "^8.0.3",
+    "@shikijs/rehype": "^4.4.3",
     "@tsconfig/node24": "^24.0.4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/hast": "^3.0.5",

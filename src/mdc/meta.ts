@@ -10,7 +10,7 @@ interface Yaml extends Node {
 }
 
 interface NavigationFile {
-  meta?: Record<string, any>;
+  meta?: Record<string, unknown>;
   path?: string;
 }
 
@@ -41,7 +41,7 @@ export default <Plugin<{ root?: string }[]>>function remarkMeta(opts) {
     const fileSegmentName = isIndex ? null : fileSegments.at(-1)!;
 
     // Parcours root -> dossier du fichier : accumule meta + renomme les segments
-    let meta: Record<string, any> = {};
+    let meta: Record<string, unknown> = {};
     const resolvedDirSegments: string[] = [];
     let currentDir = root;
 

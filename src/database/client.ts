@@ -23,21 +23,6 @@ export async function createClientDb(
     },
   });
 
-  Object.assign(globalThis, {
-    sqlite3ApiConfig: {
-      silent: true,
-      debug: (...args: unknown[]) => console.debug(...args),
-      warn: (...args: unknown[]) => {
-        if (String(args[0]).includes("OPFS sqlite3_vfs")) {
-          return;
-        }
-        console.warn(...args);
-      },
-      error: (...args: unknown[]) => console.error(...args),
-      log: (...args: unknown[]) => console.log(...args),
-    },
-  });
-
   const sqlite3 = await sqlite3InitModule();
   const db = new sqlite3.oo1.DB(filename);
 

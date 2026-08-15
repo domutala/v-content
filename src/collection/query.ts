@@ -199,5 +199,5 @@ export function queryCollection<
   K extends keyof ResolvedCollections & string,
   TCollection extends ResolvedCollections[K],
 >(name: K): CollectionQuery<TCollection> {
-  return new CollectionQueryImpl(name) as any;
+  return new CollectionQueryImpl(name);
 }

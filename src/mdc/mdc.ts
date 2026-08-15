@@ -17,7 +17,18 @@ import rehypeSortAttributeValues from "rehype-sort-attribute-values";
 import rehypeSortAttributes from "rehype-sort-attributes";
 import rehypeStringify from "rehype-stringify";
 
+import rehypeShiki from "@shikijs/rehype";
+import {
+  transformerMetaHighlight,
+  transformerMetaWordHighlight,
+  transformerNotationDiff,
+  transformerNotationErrorLevel,
+  transformerNotationFocus,
+  transformerNotationHighlight,
+} from "@shikijs/transformers";
+
 import remarkMeta from "./meta.js";
+import { Plugin } from "./types.js";
 
 function getSkipLevels(maxDepth: number): HeadingDepth[] {
   if (maxDepth < 1 || maxDepth > 6) {
@@ -36,13 +47,14 @@ export async function mdc(
     maxDepth?: HeadingDepth;
 
     root?: string;
+
+    plugins?: Plugin[];
   },
 ) {
   const { maxDepth = 3, root } = options;
 
   const processor = unified()
     .use(remarkParse)
-
     .use(remarkMeta, { root })
     .use(remarkMDC)
     .use(remarkGFM)
@@ -50,12 +62,69 @@ export async function mdc(
     .use(remarkFlexibleToc, { skipLevels: getSkipLevels(maxDepth) })
     .use(remarkRehype, { allowDangerousHtml: true })
 
+    .use(rehypeShiki, {
+      themes: {
+        light: "vitesse-light",
+        dark: "vitesse-dark",
+      },
+
+      defaultColor: false,
+
+      transformers: [
+        transformerMetaHighlight(),
+        transformerNotationDiff(),
+        transformerNotationFocus({
+          classActiveLine: "has-focus",
+          classActivePre: "has-focused-lines",
+        }),
+        transformerNotationHighlight(),
+        transformerNotationErrorLevel(),
+        transformerMetaWordHighlight(),
+
+        {
+          code() {
+            const raw = this.options.meta?.__raw;
+            if (!raw) return;
+            const parsed: Record<string, string> = {};
+
+            this.pre.properties ??= {};
+
+            const tag = raw.match(/(\[)([A-Za-z0-9_-]+)(\])/);
+            Object.assign(this.pre.properties, { tag: tag?.at(2) });
+
+            for (const match of raw.matchAll(/(\w+)=([^\s]+)/g)) {
+              parsed[match[1]] = match[2];
+            }
+
+            Object.assign(this.pre.properties, { ...parsed });
+          },
+        },
+
+        {
+          name: "vitepress:add-dir",
+          code(hast) {
+            hast.properties.dir = "ltr";
+          },
+        },
+
+        {
+          pre(hast) {
+            hast.properties.language = this.options.lang;
+          },
+        },
+      ],
+
+      addLanguageClass: true,
+    })
+
     .use(rehypeRaw)
     .use(rehypeSlug)
     .use(rehypeMinifyWhitespace)
     .use(rehypeExternalLinks)
     .use(rehypeSortAttributeValues)
     .use(rehypeSortAttributes)
+
+    .use(options.plugins ?? [])
 
     .use(rehypeStringify);
 

@@ -1,4 +1,4 @@
 declare module "virtual:v-content/compressed" {
-  const compressed: Record<string, string>;
-  export default compressed;
+  const value: { compresseds: Record<string, string>; token: string };
+  export default value;
 }

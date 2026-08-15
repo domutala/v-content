@@ -8,6 +8,7 @@ export interface CreateDbOptions {
 }
 
 let dbPromise: Promise<Database> | undefined;
+let token: string;
 const seeded = new Set();
 
 export async function createDb(
@@ -16,7 +17,26 @@ export async function createDb(
 ): Promise<Database> {
   dbPromise ??= initDb(options);
 
-  await seedCollection(await dbPromise, collectionName);
+  let raws: Record<string, string>;
+  let _token: string;
+
+  if (typeof window !== "undefined") {
+    const _raws = await import("virtual:v-content/compressed");
+
+    raws = _raws.default.compresseds;
+    _token = _raws.default.token;
+  } else {
+    const { config } = await import("../init.js");
+    raws = config.compresseds;
+    _token = config.token;
+  }
+
+  if (_token !== token) {
+    token = _token;
+    seeded.clear();
+  }
+
+  await seedCollection(await dbPromise, collectionName, raws);
 
   return dbPromise;
 }
@@ -41,17 +61,11 @@ async function initDb({
   return db;
 }
 
-async function seedCollection(db: Database, collectionName: string) {
-  let raws: Record<string, string>;
-
-  if (typeof window !== "undefined") {
-    const _raws = await import("virtual:v-content/compressed");
-    raws = _raws.default;
-  } else {
-    const { config } = await import("../init.js");
-    raws = config.compresseds;
-  }
-
+async function seedCollection(
+  db: Database,
+  collectionName: string,
+  raws: Record<string, string>,
+) {
   const raw = raws[collectionName];
   if (!raw) return;
 
@@ -94,5 +108,5 @@ async function seedCollection(db: Database, collectionName: string) {
     );
   }
 
-  seeded.add(collectionName);
+  // seeded.add(collectionName);
 }

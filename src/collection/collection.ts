@@ -1,3 +1,5 @@
+import { Plugin } from "../mdc/index.js";
+
 export type CollectionType = "page" | "data";
 
 /** Fonction de validation : reçoit les données brutes, retourne le type validé (ou throw) */
@@ -19,25 +21,31 @@ export interface CollectionDefinition<T = unknown> {
   schema?: SchemaValidator<T>;
 }
 
-export function defineCollection<const T extends CollectionDefinition<any>>(
+export function defineCollection<const T extends CollectionDefinition>(
   definition: T,
 ): T {
   return definition;
 }
 
 export interface ContentConfig<
-  TCollections extends Record<string, CollectionDefinition<any>> = Record<
+  TCollections extends Record<string, CollectionDefinition> = Record<
     string,
-    CollectionDefinition<any>
+    CollectionDefinition
   >,
 > {
   collections: TCollections;
   root?: string;
   output?: string;
+  plugins?: Plugin[];
 }
 
+export type ResolvedContentConfig = Required<ContentConfig> & {
+  compresseds: Record<string, string>;
+  token: string;
+};
+
 export function defineContentConfig<
-  TCollections extends Record<string, CollectionDefinition<any>>,
+  TCollections extends Record<string, CollectionDefinition>,
 >(config: ContentConfig<TCollections>): ContentConfig<TCollections> {
   return config;
 }

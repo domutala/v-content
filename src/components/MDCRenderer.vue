@@ -1,5 +1,5 @@
 <script lang="ts">
-import { computed, defineComponent, h } from "vue";
+import { computed, defineComponent, h, resolveComponent, VNode } from "vue";
 import type { Element, ElementContent, Properties, RootContent } from "hast";
 
 // hast property names that don't map 1:1 to the Vue/HTML attribute name
@@ -98,11 +98,12 @@ const MDCRenderer = defineComponent({
 
     return () => {
       if (isText.value) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (props.node as any).value;
       }
 
       if (isElement.value) {
-        const slots: Record<string, () => any> = {
+        const slots: Record<string, () => VNode[]> = {
           default: () =>
             defaultChildren.value.map((child) =>
               h(MDCRenderer, { node: child, key: JSON.stringify(child) }),
@@ -116,7 +117,16 @@ const MDCRenderer = defineComponent({
             );
         }
 
-        return h(tag.value as string, vueProps.value, slots);
+        const tagValue = tag.value as string;
+
+        // resolveComponent fonctionne car il est appelé PENDANT le rendu
+        // (currentRenderingInstance est actif à ce moment) et va chercher
+        // dans app.component() les composants enregistrés globalement.
+        const resolved = isCustomTag(element.value.tagName)
+          ? resolveComponent(tagValue)
+          : tagValue;
+
+        return h(resolved, vueProps.value, slots);
       }
 
       return null;

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+
 import { join, extname, relative, sep } from "node:path";
 import { readFile } from "node:fs/promises";
 
@@ -10,7 +12,7 @@ import type {
   SchemaValidator,
 } from "./collection.js";
 import { normalizeSources } from "./collection.js";
-import { mdc } from "../index.js";
+import { mdc, Plugin } from "../index.js";
 import { compressCollection } from "./compressor.js";
 import { atomicWriteFile } from "../utils/atomic-write-file.js";
 import { normalizeDir } from "../utils/dir.js";
@@ -55,11 +57,14 @@ function validate<T>(
     return schema(data, filePath);
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    throw new Error(`Validation échouée pour ${filePath}:\n  ${reason}`);
+
+    throw new Error(`Validation échouée pour ${filePath}:\n  ${reason}`, {
+      cause: error,
+    });
   }
 }
 
-async function collectFiles(
+export async function collectFiles(
   source: CollectionSource,
   root: string,
 ): Promise<{ absolutePath: string; cwd: string }[]> {
@@ -84,8 +89,9 @@ async function resolvePageEntry<T>(
   cwd: string,
   source: CollectionSource,
   schema: SchemaValidator<T> | undefined,
+  plugins: Plugin[],
 ): Promise<ResolvedPageEntry<T>> {
-  const vfile = await mdc({ file: filePath, root: cwd });
+  const vfile = await mdc({ file: filePath, root: cwd, plugins });
 
   const meta = validate(schema, vfile.data.meta, filePath);
   const path = applyPrefix(vfile.data.path!, source.prefix);
@@ -123,6 +129,7 @@ async function resolveDataEntry<T>(
 export async function resolveCollection<T>(
   definition: CollectionDefinition<T>,
   options: ResolveOptions,
+  plugins: Plugin[],
 ): Promise<(ResolvedPageEntry<T> | ResolvedDataEntry<T>)[]> {
   const sources = normalizeSources(definition.source);
   const entries: (ResolvedPageEntry<T> | ResolvedDataEntry<T>)[] = [];
@@ -133,7 +140,13 @@ export async function resolveCollection<T>(
     for (const { absolutePath, cwd } of files) {
       const entry =
         definition.type === "page"
-          ? await resolvePageEntry(absolutePath, cwd, source, definition.schema)
+          ? await resolvePageEntry(
+              absolutePath,
+              cwd,
+              source,
+              definition.schema,
+              plugins,
+            )
           : await resolveDataEntry(
               absolutePath,
               cwd,
@@ -161,12 +174,13 @@ export {};
 `;
 
 export async function resolveContentConfig<
-  TCollections extends Record<string, CollectionDefinition<any>>,
+  TCollections extends Record<string, CollectionDefinition>,
 >(
-  config: { collections?: TCollections },
+  config: { collections?: TCollections; plugins?: Plugin[] },
   options: ResolveOptions,
 ): Promise<{
   compresseds: Record<string, string>;
+  token: string;
   collections: {
     [K in keyof TCollections]: TCollections[K] extends CollectionDefinition<
       infer T
@@ -184,11 +198,13 @@ export async function resolveContentConfig<
   const result = {} as any;
   const compresseds: Record<string, string> = {};
   const types = [];
+  const token = "_content_" + Math.random().toString().slice(2, 50);
 
   for (const key of Object.keys(collections)) {
     result[key] = await resolveCollection(
       collections[key as keyof TCollections],
       options,
+      config.plugins ?? [],
     );
 
     const compressed = await compressCollection(result[key]);
@@ -204,7 +220,14 @@ export async function resolveContentConfig<
 
   atomicWriteFile(
     join(options.output, "compressed.json"),
-    JSON.stringify(compresseds, null, 4),
+    JSON.stringify(
+      {
+        compresseds,
+        token,
+      },
+      null,
+      4,
+    ),
   );
 
   atomicWriteFile(
@@ -218,5 +241,5 @@ export async function resolveContentConfig<
       .replaceAll("{{collection_types}}", types.join("\n")),
   );
 
-  return { collections: result, compresseds };
+  return { collections: result, compresseds, token };
 }

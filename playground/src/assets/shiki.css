@@ -1,0 +1,15 @@
+/* @custom-variant dark (&:where(.dark, .dark *)); */
+
+.shiki,
+.shiki span {
+  color: var(--shiki-light);
+  background-color: transparent;
+  /* background-color: var(--shiki-light-bg); */
+}
+
+.dark .shiki,
+.dark .shiki span {
+  color: var(--shiki-dark);
+  /* background-color: var(--shiki-dark-bg); */
+  background-color: transparent;
+}
