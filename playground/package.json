@@ -14,6 +14,7 @@
     "@internationalized/date": "^3.12.3",
     "@tabler/icons-vue": "^3.46.0",
     "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/vue-table": "^9.1.2",
     "@unovis/vue": "^1.6.7",
     "@vee-validate/zod": "^4.15.1",
     "@vueuse/components": "^14.4.0",

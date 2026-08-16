@@ -9,8 +9,10 @@ import vContent from "../src/plugin/bundlers/vite.js";
 import { defineCollection, type Plugin } from "../src/index.js";
 import Components from "./src/plugins/auto-import-components.js";
 import { resolve } from "node:path";
-import { Element } from "hast";
+import { Element, Text } from "hast";
 import { visit } from "unist-util-visit";
+
+import { rehypeTable, rehypeList } from "../src/mdc/plugins/index.js";
 
 const rehypeUCode: Plugin = function () {
   return (tree) => {
@@ -29,6 +31,39 @@ const rehypeUCode: Plugin = function () {
   };
 };
 
+const rehypeLink: Plugin = function () {
+  return (tree) => {
+    visit(tree, "element", (node: Element) => {
+      if (node.tagName !== "a") return;
+
+      node.tagName = "u-prose-link";
+    });
+  };
+};
+
+const rehypeCode: Plugin = function () {
+  function getText(node: Element): string {
+    if (!node.children) return "";
+    return node.children
+      .map((child) => {
+        if (child.type === "text") return child.value;
+        if (child.type === "element") return getText(child as Element);
+        return "";
+      })
+      .join("");
+  }
+
+  return (tree) => {
+    visit(tree, "element", (node: Element, index, parent?: Element) => {
+      if (node.tagName !== "code") return;
+
+      const isBlock = parent?.type === "element" && parent.tagName === "pre";
+      if (isBlock) return;
+      node.tagName = "u-prose-code";
+    });
+  };
+};
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -38,7 +73,14 @@ export default defineConfig({
     tailwindcss(),
 
     vContent({
-      plugins: [rehypeUCode],
+      plugins: [
+        [rehypeUCode],
+        [rehypeLink],
+        [rehypeCode],
+        [rehypeTable, { extractData: true, componentName: "u-use-table" }],
+        [rehypeList, { extractData: true, componentName: "u-prose-list" }],
+      ],
+
       collections: {
         docs: defineCollection({
           type: "page",

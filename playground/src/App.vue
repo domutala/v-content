@@ -1,14 +1,50 @@
 <script setup lang="ts">
-import { ConfigProvider, TooltipProvider } from "reka-ui";
-import SiteBody from "./components/SiteBody.vue";
+import "./assets/main.css";
+
+import { useAsyncState, useColorMode } from "@vueuse/core";
+import { UseColorMode } from "@vueuse/components";
+
+const mode = useColorMode();
+
+const {
+  state: data,
+  isReady,
+  isLoading,
+  error,
+} = useAsyncState(
+  queryCollection("docs").path("/docs/get-started").first(),
+  null,
+);
 </script>
 
+<!--
 <template>
-  <SiteBody>
-    <ConfigProvider>
-      <TooltipProvider>
-        <RouterView />
-      </TooltipProvider>
-    </ConfigProvider>
-  </SiteBody>
+  <main>
+    <MDC :value="html" />
+  </main>
+</template> -->
+
+<template>
+  <div class="w-3xl my-10 mx-auto space-y-5">
+    <UseColorMode v-slot="color">
+      <u-button @click="color.mode = color.mode === 'dark' ? 'light' : 'dark'">
+        Mode {{ color.mode }}
+      </u-button>
+    </UseColorMode>
+
+    <MDC v-if="data" :value="data.html" />
+
+    <UDialog>
+      <UDialogTrigger>Open</UDialogTrigger>
+      <UDialogContent>
+        <UDialogHeader>
+          <UDialogTitle>Are you absolutely sure?</UDialogTitle>
+          <UDialogDescription>
+            This action cannot be undone. This will permanently delete your
+            account and remove your data from our servers.
+          </UDialogDescription>
+        </UDialogHeader>
+      </UDialogContent>
+    </UDialog>
+  </div>
 </template>

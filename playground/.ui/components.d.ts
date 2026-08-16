@@ -377,6 +377,10 @@ declare module 'vue' {
     UCode: typeof import('../src/components/globals/Code.vue')['default'];
     UCodeGroup: typeof import('../src/components/globals/CodeGroup.vue')['default'];
     UIcon: typeof import('../src/components/globals/Icon.vue')['default'];
+    UProseCode: typeof import('../src/components/globals/ProseCode.vue')['default'];
+    UProseLink: typeof import('../src/components/globals/ProseLink.vue')['default'];
+    UProseList: typeof import('../src/components/globals/ProseList.vue')['default'];
+    UUseTable: typeof import('../src/components/globals/UseTable.vue')['default'];
     MDC: typeof import('../../src/components/MDC.vue')['default'];
     MDCRenderer: typeof import('../../src/components/MDCRenderer.vue')['default'];
   }

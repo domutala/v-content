@@ -1,4 +1,4 @@
-import { Plugin } from "../mdc/index.js";
+import type { mdc } from "../mdc/index.js";
 
 export type CollectionType = "page" | "data";
 
@@ -36,7 +36,7 @@ export interface ContentConfig<
   collections: TCollections;
   root?: string;
   output?: string;
-  plugins?: Plugin[];
+  plugins?: Parameters<typeof mdc>["0"]["plugins"];
 }
 
 export type ResolvedContentConfig = Required<ContentConfig> & {

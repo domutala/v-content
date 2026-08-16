@@ -41,6 +41,11 @@ function getSkipLevels(maxDepth: number): HeadingDepth[] {
   );
 }
 
+type PluginTuple<T extends object = object> = [
+  Plugin<T>,
+  ({ root?: string; maxDepth: number } & T)?,
+];
+
 export async function mdc(
   options: ({ value: string | VFile } | { file: string }) & {
     /** @default 3 */
@@ -48,10 +53,26 @@ export async function mdc(
 
     root?: string;
 
-    plugins?: Plugin[];
+    plugins: PluginTuple[];
   },
 ) {
   const { maxDepth = 3, root } = options;
+
+  const usePlugin: Plugin<{
+    plugins: PluginTuple[];
+    root?: string;
+    maxDepth: number;
+  }> = function (options) {
+    for (const plugin of options.plugins) {
+      this.use(plugin[0], {
+        root: options.root,
+        maxDepth: options.maxDepth,
+        ...(plugin[1] ?? {}),
+      });
+    }
+
+    return () => {};
+  };
 
   const processor = unified()
     .use(remarkParse)
@@ -117,14 +138,14 @@ export async function mdc(
       addLanguageClass: true,
     })
 
+    .use(usePlugin, { root, maxDepth, plugins: options.plugins ?? [] })
+
     .use(rehypeRaw)
     .use(rehypeSlug)
     .use(rehypeMinifyWhitespace)
     .use(rehypeExternalLinks)
     .use(rehypeSortAttributeValues)
     .use(rehypeSortAttributes)
-
-    .use(options.plugins ?? [])
 
     .use(rehypeStringify);
 
