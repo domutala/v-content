@@ -83,15 +83,7 @@ export async function mdc(
     .use(remarkFlexibleToc, { skipLevels: getSkipLevels(maxDepth) })
     .use(remarkRehype, { allowDangerousHtml: true })
 
-    .use(rehypeRaw)
-
     .use(usePlugin, { root, maxDepth, plugins: options.plugins ?? [] })
-
-    .use(rehypeSlug)
-    .use(rehypeMinifyWhitespace)
-    .use(rehypeExternalLinks)
-    .use(rehypeSortAttributeValues)
-    .use(rehypeSortAttributes)
 
     .use(rehypeShiki, {
       themes: {
@@ -147,6 +139,13 @@ export async function mdc(
 
       addLanguageClass: true,
     })
+
+    .use(rehypeRaw)
+    .use(rehypeSlug)
+    .use(rehypeMinifyWhitespace)
+    .use(rehypeExternalLinks)
+    .use(rehypeSortAttributeValues)
+    .use(rehypeSortAttributes)
 
     .use(rehypeStringify);
 
