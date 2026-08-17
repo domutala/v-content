@@ -59,7 +59,12 @@ function parseTable(node: Element) {
   const headers =
     headerRow?.children
       .filter((n): n is Element => n.type === "element" && n.tagName === "th")
-      .map((th) => getHtml(th).trim()) ?? [];
+      .map(
+        (th) =>
+          getHtml(th).trim() ||
+          `___hide_${Math.random().toString().substring(2, 15)}`,
+      ) ?? [];
+  console.log(headers);
 
   const bodyRows =
     tbody?.children.filter(

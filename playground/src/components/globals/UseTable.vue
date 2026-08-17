@@ -79,8 +79,16 @@ const table = useTable({
           class="bg-muted dark:bg-muted/10 [&>:not(:last-child)]:border-r"
         >
           <UTableHead v-for="header in headerGroup.headers" :key="header.id">
-            <span class="flex flex-wrap items-center gap-1">
-              <MDC :value="header.column.columnDef.header?.toString() ?? ''" />
+            <span
+              v-if="
+                header.column.columnDef.header &&
+                !header.column.columnDef.header
+                  .toString()
+                  .startsWith('___hide_')
+              "
+              class="flex flex-wrap items-center gap-1"
+            >
+              <MDC :value="header.column.columnDef.header?.toString()" />
             </span>
             <!-- <FlexRender v-if="!header.isPlaceholder" :header="header" /> -->
           </UTableHead>

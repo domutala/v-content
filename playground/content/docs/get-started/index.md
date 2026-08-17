@@ -3,17 +3,14 @@ title: Installation
 description: Créez ou intégrez Syora en une seule commande.
 ---
 
-
-| <u-icon name="tabler:circle-check-filled"></u-icon> Ce que Nuxt fait bien | Ce que Syora vous apporte |
-|----------------------|---------------------------|
-| Routage automatique |  <u-icon name="tabler:circle-check-filled"></u-icon> `pages/` avec conventions filesystem |
-| Layouts | ✅ `layouts/default.vue`, sélection dynamique |
-| Auto-imports | ✅ Composables, composants, globals |
-| Data fetching | ✅ `useAsyncData` avec cache, SSR, hydration |
-| SSR | ✅ Rendu serveur complet + sérialisation |
-| Modules | ✅ `defineModule()` avec typage généré |
-| Plugins | ✅ `defineVuePlugin()` avec lifecycle hooks |
-| Middlewares | ✅ Route guards intégrés |
+|                            | Nuxt                     | Syora                                      |
+| -------------------------- | ------------------------ | ------------------------------------------ |
+| **Courbe d'apprentissage** | Douce                    | Douce (mêmes conventions)                  |
+| **Configuration**          | `nuxt.config.ts`         | `syora.config.ts`                          |
+|                  | `nuxt dev`, `nuxt build` | `syora dev`, `syora build`                 |
+| **Auto-imports**           | Composables, composants  | Composables, composants, globals           |
+| **TypeScript**             | Excellent                | Excellent (types générés pour les modules) |
+| **Devtools**               | Nuxt DevTools            | 🚧 (roadmap)                               |
 
 ---
 
