@@ -1,6 +1,6 @@
 {
   "name": "v-content",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": false,
   "license": "MIT",
   "type": "module",
@@ -68,12 +68,13 @@
     "build": "tsdown"
   },
   "dependencies": {
+    "@shikijs/rehype": "^4.4.3",
     "@shikijs/transformers": "^4.4.3",
     "@sqlite.org/sqlite-wasm": "3.53.0-build1",
-    "@shikijs/rehype": "^4.4.3",
     "chokidar": "^5.0.0",
     "db0": "^0.3.4",
     "fast-glob": "^3.3.3",
+    "hast-util-to-html": "^9.0.5",
     "minimatch": "^10.2.6",
     "rehype": "^13.0.2",
     "rehype-external-links": "^3.0.0",

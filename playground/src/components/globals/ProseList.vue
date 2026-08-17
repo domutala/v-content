@@ -27,8 +27,14 @@ const data = computed(() => {
     class="u-list space-y-1 pl-5"
     :class="ordered ? 'list-decimal' : 'list-disc'"
   >
-    <li v-for="(item, i) in data.items" :key="i" class="leading-relaxed">
-      {{ item.label }}
+    <li
+      v-for="(item, i) in data.items"
+      :key="i"
+      class="leading-relaxed whitespace-nowrap"
+    >
+      <span class="flex flex-wrap items-center gap-1">
+        <MDC :value="item.label" />
+      </span>
       <UProseList
         v-if="item.children?.length"
         :raws="JSON.stringify({ items: item.children })"

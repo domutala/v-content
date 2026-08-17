@@ -1,5 +1,5 @@
 <script lang="ts">
-import { createColumnHelper, FlexRender, useTable } from "@tanstack/vue-table";
+import { createColumnHelper, useTable } from "@tanstack/vue-table";
 
 import {
   columnFilteringFeature,
@@ -79,7 +79,10 @@ const table = useTable({
           class="bg-muted dark:bg-muted/10 [&>:not(:last-child)]:border-r"
         >
           <UTableHead v-for="header in headerGroup.headers" :key="header.id">
-            <FlexRender v-if="!header.isPlaceholder" :header="header" />
+            <span class="flex flex-wrap items-center gap-1">
+              <MDC :value="header.column.columnDef.header?.toString() ?? ''" />
+            </span>
+            <!-- <FlexRender v-if="!header.isPlaceholder" :header="header" /> -->
           </UTableHead>
         </UTableRow>
       </UTableHeader>
@@ -93,7 +96,10 @@ const table = useTable({
             class="[&>:not(:last-child)]:border-r"
           >
             <UTableCell v-for="cell in row.getVisibleCells()" :key="cell.id">
-              <FlexRender :cell="cell" />
+              <span class="flex flex-wrap items-center gap-1">
+                <MDC :value="cell.getValue<string>()" />
+              </span>
+              <!-- <FlexRender :cell="cell" /> -->
             </UTableCell>
           </UTableRow>
         </template>

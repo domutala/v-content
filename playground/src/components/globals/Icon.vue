@@ -1,14 +1,9 @@
 <script lang="ts" setup>
-import * as icons from "@tabler/icons-vue";
-import { computed } from "vue";
+import { Icon } from "@iconify/vue";
 
-const props = defineProps<{ name: keyof typeof icons }>();
-
-const icon = computed(() => {
-  return icons[props.name];
-});
+defineProps<{ name: string }>();
 </script>
 
 <template>
-  <Component :is="icon" />
+  <Icon :icon="name" />
 </template>

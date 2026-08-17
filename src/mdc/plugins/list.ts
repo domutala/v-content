@@ -1,4 +1,5 @@
 import type { Element, Root } from "hast";
+import { toHtml } from "hast-util-to-html";
 import { visit } from "unist-util-visit";
 
 import { Plugin } from "../types.js";
@@ -26,25 +27,26 @@ export interface RehypeUListOptions {
   >;
 }
 
-/** Extracts a node's text content, excluding any nested `<ul>`/`<ol>` (their text is collected separately by `parseList`). */
-function getTextNoLists(node: Element): string {
+/**
+ * Extracts a node's inner HTML, excluding any nested `<ul>`/`<ol>` (their
+ * content is collected separately by `parseList`). Unlike a plain text
+ * extraction, this preserves inline elements (icons, images, custom tags,
+ * emphasis, links, etc.) as serialized HTML instead of discarding them.
+ */
+function getHtmlNoLists(node: Element): string {
   if (!node.children) return "";
-  return node.children
-    .map((child) => {
-      if (child.type === "text") return child.value;
-      if (
-        child.type === "element" &&
+  const kept = node.children.filter(
+    (child) =>
+      child.type === "text" ||
+      (child.type === "element" &&
         child.tagName !== "ul" &&
-        child.tagName !== "ol"
-      ) {
-        return getTextNoLists(child);
-      }
-      return "";
-    })
-    .join("");
+        child.tagName !== "ol"),
+  );
+  return toHtml({ type: "root", children: kept });
 }
 
 interface ListItem {
+  /** Inner HTML of the `<li>` (text + inline elements), excluding nested lists. */
   label: string;
   /** Only set when this item has a nested list — `true` for `<ol>`, `false` for `<ul>`. */
   ordered?: boolean;
@@ -54,9 +56,9 @@ interface ListItem {
 
 /**
  * Recursively parses a `<ul>`/`<ol>` element into `ListItem`s. Each `<li>`
- * becomes one item, with its own text (excluding nested lists) as `label`.
- * Only the first nested `<ul>`/`<ol>` found in an `<li>` is parsed into
- * `children` — a second sibling sub-list would be ignored.
+ * becomes one item, with its own inner HTML (excluding nested lists) as
+ * `label`. Only the first nested `<ul>`/`<ol>` found in an `<li>` is parsed
+ * into `children` — a second sibling sub-list would be ignored.
  */
 function parseList(node: Element): ListItem[] {
   return node.children
@@ -70,7 +72,7 @@ function parseList(node: Element): ListItem[] {
         (n) => n.tagName === "ul" || n.tagName === "ol",
       );
 
-      const label = getTextNoLists(li).trim();
+      const label = getHtmlNoLists(li).trim();
 
       const item: ListItem = { label };
 

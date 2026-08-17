@@ -4,9 +4,9 @@ description: Créez ou intégrez Syora en une seule commande.
 ---
 
 
-| Ce que Nuxt fait bien | Ce que Syora vous apporte |
+| <u-icon name="tabler:circle-check-filled"></u-icon> Ce que Nuxt fait bien | Ce que Syora vous apporte |
 |----------------------|---------------------------|
-| Routage automatique | ✅ `pages/` avec conventions filesystem |
+| Routage automatique |  <u-icon name="tabler:circle-check-filled"></u-icon> `pages/` avec conventions filesystem |
 | Layouts | ✅ `layouts/default.vue`, sélection dynamique |
 | Auto-imports | ✅ Composables, composants, globals |
 | Data fetching | ✅ `useAsyncData` avec cache, SSR, hydration |
@@ -17,7 +17,7 @@ description: Créez ou intégrez Syora en une seule commande.
 
 ---
 
-- Premier élément
+- <u-icon name="tabler:circle-check-filled"></u-icon> Premier élément
 - Deuxième élément
   - Sous-élément A
   - Sous-élément B
@@ -28,5 +28,7 @@ description: Créez ou intégrez Syora en une seule commande.
    1. Sous-étape
 
 ---
+
+<u-icon name="tabler:circle-check-filled"></u-icon>
 
 Un [lien avec du `code`](https://example.com) ou une [**image**](/img)

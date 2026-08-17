@@ -1,4 +1,5 @@
-import type { Element, Root, Text } from "hast";
+import type { Element, Root } from "hast";
+import { toHtml } from "hast-util-to-html";
 import { visit } from "unist-util-visit";
 
 import { Plugin } from "../types.js";
@@ -27,16 +28,14 @@ export interface RehypeUTableOptions {
   >;
 }
 
-/** Recursively concatenates the text content of a node and its descendants. */
-function getText(node: Element): string {
+/**
+ * Extracts a node's inner HTML. Unlike a plain text extraction, this
+ * preserves inline elements (icons, images, custom tags, emphasis, links,
+ * etc.) as serialized HTML instead of discarding them.
+ */
+function getHtml(node: Element): string {
   if (!node.children) return "";
-  return node.children
-    .map((child) => {
-      if (child.type === "text") return (child as Text).value;
-      if (child.type === "element") return getText(child as Element);
-      return "";
-    })
-    .join("");
+  return toHtml({ type: "root", children: node.children });
 }
 
 /**
@@ -44,6 +43,7 @@ function getText(node: Element): string {
  * Headers come from the first `<tr>` found under `<thead>` (its `<th>`
  * cells); a cell with no matching header falls back to `col{index}` as its
  * key. Rows come from every `<tr>` under `<tbody>`, keyed the same way.
+ * Cell content is kept as HTML so inline elements survive extraction.
  */
 function parseTable(node: Element) {
   const thead = node.children.find(
@@ -59,7 +59,7 @@ function parseTable(node: Element) {
   const headers =
     headerRow?.children
       .filter((n): n is Element => n.type === "element" && n.tagName === "th")
-      .map((th) => getText(th)) ?? [];
+      .map((th) => getHtml(th).trim()) ?? [];
 
   const bodyRows =
     tbody?.children.filter(
@@ -73,7 +73,7 @@ function parseTable(node: Element) {
     const row: Record<string, string> = {};
     cells.forEach((td, i) => {
       const key = headers[i] ?? `col${i}`;
-      row[key] = getText(td);
+      row[key] = getHtml(td).trim();
     });
     return row;
   });
