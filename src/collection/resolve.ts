@@ -12,16 +12,16 @@ import type {
   SchemaValidator,
 } from "./collection.js";
 import { normalizeSources } from "./collection.js";
-import { mdc, Plugin } from "../index.js";
+import { mdc, PageMeta, PageTocItem } from "../index.js";
 import { compressCollection } from "./compressor.js";
 import { atomicWriteFile } from "../utils/atomic-write-file.js";
 import { normalizeDir } from "../utils/dir.js";
 
-export interface ResolvedPageEntry<TMeta = unknown> {
+export interface ResolvedPageEntry<TMeta extends PageMeta = PageMeta> {
   type: "page";
   path: string;
   meta: TMeta;
-  toc: unknown;
+  toc: PageTocItem[];
   html: string;
 }
 
@@ -46,7 +46,7 @@ function applyPrefix(path: string, prefix?: string): string {
   return path === "/" ? cleanPrefix : cleanPrefix + path;
 }
 
-function validate<T>(
+function validate<T extends PageMeta = PageMeta>(
   schema: SchemaValidator<T> | undefined,
   data: unknown,
   filePath: string,
@@ -84,12 +84,12 @@ export async function collectFiles(
   return files.map((f) => ({ absolutePath: join(cwd, f), cwd }));
 }
 
-async function resolvePageEntry<T>(
+async function resolvePageEntry<T extends PageMeta = PageMeta>(
   filePath: string,
   cwd: string,
   source: CollectionSource,
   schema: SchemaValidator<T> | undefined,
-  plugins: Plugin[],
+  plugins: Parameters<typeof mdc>[0]["plugins"],
 ): Promise<ResolvedPageEntry<T>> {
   const vfile = await mdc({ file: filePath, root: cwd, plugins });
 
@@ -100,17 +100,17 @@ async function resolvePageEntry<T>(
     type: "page",
     path,
     meta,
-    toc: vfile.data.toc,
+    toc: vfile.data.toc ?? [],
     html: vfile.toString(),
   };
 }
 
-async function resolveDataEntry<T>(
+async function resolveDataEntry(
   filePath: string,
   cwd: string,
   source: CollectionSource,
-  schema: SchemaValidator<T> | undefined,
-): Promise<ResolvedDataEntry<T>> {
+  schema: SchemaValidator | undefined,
+): Promise<ResolvedDataEntry> {
   const raw = await readFile(filePath, "utf8");
   const ext = extname(filePath);
 
@@ -126,13 +126,13 @@ async function resolveDataEntry<T>(
   return { type: "data", path, data };
 }
 
-export async function resolveCollection<T>(
-  definition: CollectionDefinition<T>,
+export async function resolveCollection(
+  definition: CollectionDefinition,
   options: ResolveOptions,
-  plugins: Plugin[],
-): Promise<(ResolvedPageEntry<T> | ResolvedDataEntry<T>)[]> {
+  plugins: Parameters<typeof mdc>[0]["plugins"],
+): Promise<(ResolvedPageEntry | ResolvedDataEntry)[]> {
   const sources = normalizeSources(definition.source);
-  const entries: (ResolvedPageEntry<T> | ResolvedDataEntry<T>)[] = [];
+  const entries: (ResolvedPageEntry | ResolvedDataEntry)[] = [];
 
   for (const source of sources) {
     const files = await collectFiles(source, options.root);
@@ -176,18 +176,19 @@ export {};
 export async function resolveContentConfig<
   TCollections extends Record<string, CollectionDefinition>,
 >(
-  config: { collections?: TCollections; plugins?: Plugin[] },
+  config: {
+    collections?: TCollections;
+    plugins?: Parameters<typeof mdc>[0]["plugins"];
+  },
   options: ResolveOptions,
 ): Promise<{
   compresseds: Record<string, string>;
   token: string;
   collections: {
-    [K in keyof TCollections]: TCollections[K] extends CollectionDefinition<
-      infer T
-    >
+    [K in keyof TCollections]: TCollections[K] extends CollectionDefinition
       ? TCollections[K]["type"] extends "page"
-        ? ResolvedPageEntry<T>[]
-        : ResolvedDataEntry<T>[]
+        ? ResolvedPageEntry[]
+        : ResolvedDataEntry[]
       : never;
   };
 }> {
@@ -195,6 +196,7 @@ export async function resolveContentConfig<
 
   const collections = config.collections ?? ({} as TCollections);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const result = {} as any;
   const compresseds: Record<string, string> = {};
   const types = [];

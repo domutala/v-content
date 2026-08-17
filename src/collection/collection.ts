@@ -1,9 +1,9 @@
-import type { mdc } from "../mdc/index.js";
+import type { mdc, PageMeta } from "../mdc/index.js";
 
 export type CollectionType = "page" | "data";
 
 /** Fonction de validation : reçoit les données brutes, retourne le type validé (ou throw) */
-export type SchemaValidator<T = unknown> = (
+export type SchemaValidator<T extends PageMeta = PageMeta> = (
   data: unknown,
   filePath: string,
 ) => T;
@@ -15,10 +15,10 @@ export interface CollectionSource {
   cwd?: string;
 }
 
-export interface CollectionDefinition<T = unknown> {
+export interface CollectionDefinition {
   type: CollectionType;
   source: string | CollectionSource | (string | CollectionSource)[];
-  schema?: SchemaValidator<T>;
+  schema?: SchemaValidator;
 }
 
 export function defineCollection<const T extends CollectionDefinition>(

@@ -1,20 +1,15 @@
 <script setup lang="ts">
 import "./assets/main.css";
 
-import { useAsyncState, useColorMode } from "@vueuse/core";
+import { useAsyncState } from "@vueuse/core";
 import { UseColorMode } from "@vueuse/components";
-
-const mode = useColorMode();
 
 const {
   state: data,
   isReady,
   isLoading,
   error,
-} = useAsyncState(
-  queryCollection("docs").path("/docs/get-started").first(),
-  null,
-);
+} = useAsyncState(queryCollection("docs").navigation(), null);
 </script>
 
 <!--
@@ -25,14 +20,16 @@ const {
 </template> -->
 
 <template>
-  <div class="w-3xl my-10 mx-auto space-y-5">
+  <div v-if="data" class="w-3xl my-10 mx-auto space-y-5">
     <UseColorMode v-slot="color">
       <u-button @click="color.mode = color.mode === 'dark' ? 'light' : 'dark'">
         Mode {{ color.mode }}
       </u-button>
     </UseColorMode>
 
-    <MDC v-if="data" :value="data.html" />
+    {{ data }}
+
+    <!-- <MDC v-if="data" :value="data.html" /> -->
 
     <UDialog>
       <UDialogTrigger>Open</UDialogTrigger>

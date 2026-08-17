@@ -1,4 +1,4 @@
-import { TocItem } from "remark-flexible-toc";
+import type { TocItem } from "remark-flexible-toc";
 import type { Plugin as UnifiedPlugin } from "unified";
 import { Node } from "unist";
 
@@ -10,9 +10,19 @@ declare module "unist" {
 
 declare module "vfile" {
   export interface DataMap {
-    toc: TocItem;
+    toc: PageTocItem[];
   }
 }
+
+export type PageTocItem = TocItem;
+
+export type PageMeta<
+  T extends Record<string, unknown> = Record<string, unknown>,
+> = {
+  title: string;
+  description?: string;
+  icon?: string;
+} & T;
 
 export type PropertiesTableProps = {
   columns: { key: string; label: string }[];

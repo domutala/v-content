@@ -4,6 +4,7 @@ import { parse as parseYaml } from "yaml";
 import remarkFrontmatter from "remark-frontmatter";
 import { extname, relative, join, sep } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
+import { PageMeta } from "./types";
 
 interface Yaml extends Node {
   value: string;
@@ -68,20 +69,20 @@ export default <Plugin<{ root?: string }[]>>function remarkMeta(opts) {
       : [...resolvedDirSegments, fileSegmentName!];
 
     file.data.path = "/" + finalSegments.join("/");
-    file.data.meta = meta;
+    file.data.meta = meta as PageMeta;
   };
 };
 
-export interface MetaIems {
-  title?: string;
-  description?: string;
-  icon?: string;
-  [key: string]: unknown;
-}
+// export interface MetaIems {
+//   title?: string;
+//   description?: string;
+//   icon?: string;
+//   [key: string]: unknown;
+// }
 
 declare module "vfile" {
   export interface DataMap {
     path: string;
-    meta: MetaIems;
+    meta: PageMeta;
   }
 }

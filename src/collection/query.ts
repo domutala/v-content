@@ -5,6 +5,7 @@ import type {
 } from "./resolve.js";
 import { createDb } from "../database/index.js";
 import type { Database, SqlParam } from "../database/types.js";
+import { PageMeta } from "../mdc/types.js";
 
 interface EntryRow {
   type: "page" | "data";
@@ -35,6 +36,8 @@ function rowToEntry<T>(row: EntryRow): T {
 export interface NavigationItem {
   title: string;
   path: string;
+  meta: PageMeta;
+  description?: string;
   children?: NavigationItem[];
 }
 
@@ -50,9 +53,7 @@ function titleFromSegment(segment: string): string {
  * folder node (its title overrides the placeholder derived from the
  * segment name).
  */
-function buildNavigationTree(
-  entries: ResolvedPageEntry<{ title?: string }>[],
-): NavigationItem[] {
+function buildNavigationTree(entries: ResolvedPageEntry[]): NavigationItem[] {
   const root: NavigationItem[] = [];
   const nodesByPath = new Map<string, NavigationItem>();
 
@@ -68,7 +69,12 @@ function buildNavigationTree(
       let node = nodesByPath.get(currentPath);
 
       if (!node) {
-        node = { title: titleFromSegment(segment), path: currentPath };
+        node = {
+          description: entry.meta.description,
+          title: titleFromSegment(segment),
+          path: currentPath,
+          meta: entry.meta,
+        };
         nodesByPath.set(currentPath, node);
         siblings.push(node);
       }
@@ -169,7 +175,7 @@ export class CollectionQueryImpl<
 
     const entries = rows.map((row) =>
       rowToEntry<{ title?: string }>(row),
-    ) as ResolvedPageEntry<{ title?: string }>[];
+    ) as ResolvedPageEntry[];
 
     return buildNavigationTree(entries);
   }
