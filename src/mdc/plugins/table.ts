@@ -64,7 +64,6 @@ function parseTable(node: Element) {
           getHtml(th).trim() ||
           `___hide_${Math.random().toString().substring(2, 15)}`,
       ) ?? [];
-  console.log(headers);
 
   const bodyRows =
     tbody?.children.filter(
