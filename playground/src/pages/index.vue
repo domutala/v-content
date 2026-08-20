@@ -6,7 +6,6 @@ import SiteHeader from "@/components/SiteHeader.vue";
 //   titleTemplate: `%s - ${siteConfig.name}`,
 //   description: siteConfig.description,
 // })
-IntersectionObserver;
 // defineOgImage('Custom')
 </script>
 

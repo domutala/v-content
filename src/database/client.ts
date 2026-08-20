@@ -1,4 +1,4 @@
-import type { Database } from "./types";
+import type { Database } from "./types.js";
 
 export async function createClientDb(
   filename = "content.db",

@@ -9,7 +9,7 @@ const {
   isReady,
   isLoading,
   error,
-} = useAsyncState(queryCollection("docs").navigation(), null);
+} = useAsyncState(queryCollection("gettingStarted").navigation(), null);
 </script>
 
 <!--
@@ -27,7 +27,9 @@ const {
       </u-button>
     </UseColorMode>
 
-    {{ data }}
+    <div>
+      {{ data }}
+    </div>
 
     <!-- <MDC v-if="data" :value="data.html" /> -->
 
@@ -44,4 +46,5 @@ const {
       </UDialogContent>
     </UDialog>
   </div>
+  <div v-else class="w-3xl my-10 mx-auto">Chargement du playground…</div>
 </template>

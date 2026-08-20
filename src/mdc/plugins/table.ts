@@ -59,11 +59,14 @@ function parseTable(node: Element) {
   const headers =
     headerRow?.children
       .filter((n): n is Element => n.type === "element" && n.tagName === "th")
-      .map(
-        (th) =>
-          getHtml(th).trim() ||
-          `___hide_${Math.random().toString().substring(2, 15)}`,
-      ) ?? [];
+      .map((th) => {
+        const label = getHtml(th).trim();
+        const key =
+          label.replace(/[^a-zA-Z0-9]/g, "") ||
+          `___hide_${Math.random().toString().substring(2, 15)}`;
+
+        return { key, label };
+      }) ?? [];
 
   const bodyRows =
     tbody?.children.filter(
@@ -76,7 +79,7 @@ function parseTable(node: Element) {
     );
     const row: Record<string, string> = {};
     cells.forEach((td, i) => {
-      const key = headers[i] ?? `col${i}`;
+      const key = headers[i]?.key ?? `col${i}`;
       row[key] = getHtml(td).trim();
     });
     return row;
@@ -117,11 +120,6 @@ export const rehypeTable: Plugin<RehypeUTableOptions, Root> = function (
 
       const { headers, rows } = parseTable(node);
 
-      const columns = headers.map((h) => ({
-        key: h, //.toLowerCase().replace(/\s+/g, "-"),
-        label: h,
-      }));
-
       const component: Element = {
         type: "element",
         tagName: componentName,
@@ -135,7 +133,7 @@ export const rehypeTable: Plugin<RehypeUTableOptions, Root> = function (
       // data is JSON-encoded into a single `raws` attribute rather than
       // passed as a nested object.
       Object.assign(component.properties, {
-        raws: JSON.stringify({ columns, rows }),
+        raws: JSON.stringify({ columns: headers, rows }),
       });
 
       parent.children.splice(index, 1, component);

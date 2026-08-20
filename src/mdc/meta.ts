@@ -1,10 +1,12 @@
+import { extname, relative, join, sep } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+
 import type { Plugin } from "unified";
 import type { Node } from "unist";
 import { parse as parseYaml } from "yaml";
 import remarkFrontmatter from "remark-frontmatter";
-import { extname, relative, join, sep } from "node:path";
-import { existsSync, readFileSync } from "node:fs";
-import { PageMeta } from "./types";
+
+import { PageMeta } from "./types.js";
 
 interface Yaml extends Node {
   value: string;

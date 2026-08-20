@@ -1,33 +1,15 @@
-import {
-  existsSync,
-  renameSync,
-  rmSync,
-  writeFileSync,
-  mkdirSync,
-} from 'node:fs';
-import { dirname } from 'node:path';
+import { renameSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
+import { dirname } from "node:path";
 
 export function atomicWriteFile(path: string, content: string): void {
-  const temporaryPath = `${path}.tmp`;
-  const oldPath = `${path}.old`;
+  const temporaryPath = `${path}.${process.pid}.${Math.random().toString(36).slice(2)}.tmp`;
 
   mkdirSync(dirname(path), { recursive: true });
 
-  // Cleanup ancien état
-  rmSync(temporaryPath, { recursive: true, force: true });
-  rmSync(oldPath, { recursive: true, force: true });
-
-  // Écriture du nouveau fichier
-  writeFileSync(temporaryPath, content);
-
-  // Sauvegarde ancien fichier
-  if (existsSync(path)) {
-    renameSync(path, oldPath);
+  try {
+    writeFileSync(temporaryPath, content);
+    renameSync(temporaryPath, path);
+  } finally {
+    rmSync(temporaryPath, { force: true });
   }
-
-  // Activation nouveau fichier
-  renameSync(temporaryPath, path);
-
-  // Suppression ancien fichier
-  rmSync(oldPath, { recursive: true, force: true });
 }

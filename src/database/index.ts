@@ -10,6 +10,7 @@ export interface CreateDbOptions {
 let dbPromise: Promise<Database> | undefined;
 let token: string;
 const seeded = new Set();
+const seeding = new Map<string, Promise<void>>();
 
 export async function createDb(
   collectionName: string,
@@ -20,20 +21,21 @@ export async function createDb(
   let raws: Record<string, string>;
   let _token: string;
 
-  if (typeof window !== "undefined") {
+  if (typeof window === "undefined") {
+    const { config } = await import("../init.js");
+    raws = config.compresseds;
+    _token = config.token;
+  } else {
     const _raws = await import("virtual:v-content/compressed");
 
     raws = _raws.default.compresseds;
     _token = _raws.default.token;
-  } else {
-    const { config } = await import("../init.js");
-    raws = config.compresseds;
-    _token = config.token;
   }
 
   if (_token !== token) {
     token = _token;
     seeded.clear();
+    seeding.clear();
   }
 
   await seedCollection(await dbPromise, collectionName, raws);
@@ -66,6 +68,27 @@ async function seedCollection(
   collectionName: string,
   raws: Record<string, string>,
 ) {
+  if (seeded.has(collectionName)) return;
+
+  const pending = seeding.get(collectionName);
+  if (pending) return pending;
+
+  const promise = seedCollectionOnce(db, collectionName, raws);
+  seeding.set(collectionName, promise);
+
+  try {
+    await promise;
+    seeded.add(collectionName);
+  } finally {
+    seeding.delete(collectionName);
+  }
+}
+
+async function seedCollectionOnce(
+  db: Database,
+  collectionName: string,
+  raws: Record<string, string>,
+) {
   const raw = raws[collectionName];
   if (!raw) return;
 
@@ -81,8 +104,6 @@ async function seedCollection(
       UNIQUE(collection, path)
     );
   `);
-
-  if (seeded.has(collectionName)) return;
 
   const entries = await decompressCollection<ResolvedEntry[]>(raw);
 
@@ -108,5 +129,4 @@ async function seedCollection(
     );
   }
 
-  // seeded.add(collectionName);
 }

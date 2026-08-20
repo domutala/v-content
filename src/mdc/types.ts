@@ -1,6 +1,6 @@
 import type { TocItem } from "remark-flexible-toc";
 import type { Plugin as UnifiedPlugin } from "unified";
-import { Node } from "unist";
+import type { Node } from "unist";
 
 declare module "unist" {
   export interface Node {
@@ -39,3 +39,12 @@ export type Plugin<
   T extends object = object,
   Input extends Node = Node,
 > = UnifiedPlugin<Array<{ root?: string; maxDepth: number } & T>, Input>;
+
+/**
+ * A configured unified plugin. The tree type intentionally remains open:
+ * remark plugins consume mdast roots while rehype plugins consume hast roots.
+ */
+export type PluginTuple = [
+  plugin: UnifiedPlugin<any[], any, any>,
+  options?: Record<string, unknown>,
+];

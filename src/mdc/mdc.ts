@@ -28,7 +28,7 @@ import {
 } from "@shikijs/transformers";
 
 import remarkMeta from "./meta.js";
-import { Plugin } from "./types.js";
+import type { Plugin, PluginTuple } from "./types.js";
 
 function getSkipLevels(maxDepth: number): HeadingDepth[] {
   if (maxDepth < 1 || maxDepth > 6) {
@@ -40,11 +40,6 @@ function getSkipLevels(maxDepth: number): HeadingDepth[] {
     (_, index) => (maxDepth + index + 1) as HeadingDepth,
   );
 }
-
-type PluginTuple<T extends object = object> = [
-  Plugin<T>,
-  ({ root?: string; maxDepth: number } & T)?,
-];
 
 export async function mdc(
   options: ({ value: string | VFile } | { file: string }) & {
