@@ -3,9 +3,9 @@ import type {
   ResolvedDataEntry,
   ResolvedPageEntry,
 } from "./resolve.js";
-import { createDb } from "../database/index.js";
-import type { Database, SqlParam } from "../database/types.js";
-import { PageMeta } from "../mdc/types.js";
+import { createDb } from "../database/sqlite/index.js";
+import type { Database, SqlParam } from "../database/sqlite/types.js";
+import type { PageMeta } from "../mdc/types.js";
 
 interface EntryRow {
   type: "page" | "data";
@@ -13,6 +13,12 @@ interface EntryRow {
   meta_or_data: string;
   toc: string | null;
   html: string | null;
+  previous_path: string | null;
+  previous_meta: string | null;
+  previous_toc: string | null;
+  next_path: string | null;
+  next_meta: string | null;
+  next_toc: string | null;
 }
 
 function rowToEntry<T>(row: EntryRow): T {
@@ -23,6 +29,24 @@ function rowToEntry<T>(row: EntryRow): T {
       meta: JSON.parse(row.meta_or_data) as T,
       toc: row.toc ? JSON.parse(row.toc) : undefined,
       html: row.html ?? "",
+      previous:
+        row.previous_path && row.previous_meta
+          ? {
+              type: "page",
+              path: row.previous_path,
+              meta: JSON.parse(row.previous_meta),
+              toc: row.previous_toc ? JSON.parse(row.previous_toc) : [],
+            }
+          : null,
+      next:
+        row.next_path && row.next_meta
+          ? {
+              type: "page",
+              path: row.next_path,
+              meta: JSON.parse(row.next_meta),
+              toc: row.next_toc ? JSON.parse(row.next_toc) : [],
+            }
+          : null,
     } as T;
   }
 
@@ -166,7 +190,10 @@ export class CollectionQueryImpl<
     // .path()/.limit() already set), sorted ASC so parents are always
     // encountered before their children in a single pass
     const db = await this.db;
-    const sql = `SELECT type, path, meta_or_data, toc, html
+    const sql = `SELECT type, path, meta_or_data, toc, html,
+                NULL AS previous_path, NULL AS previous_meta,
+                NULL AS previous_toc, NULL AS next_path,
+                NULL AS next_meta, NULL AS next_toc
          FROM entries
          WHERE collection = ? AND type = 'page'
          ORDER BY path ASC`;
@@ -182,14 +209,33 @@ export class CollectionQueryImpl<
 
   private build(forcedLimit?: number): { sql: string; params: SqlParam[] } {
     const params: SqlParam[] = [this.collection];
-    let sql = `SELECT type, path, meta_or_data, toc, html FROM entries WHERE collection = ?`;
+    let sql = `SELECT e.type, e.path, e.meta_or_data, e.toc, e.html,
+      (SELECT p.path FROM entries p
+       WHERE p.collection = e.collection AND p.type = 'page' AND p.path < e.path
+       ORDER BY p.path DESC LIMIT 1) AS previous_path,
+      (SELECT p.meta_or_data FROM entries p
+       WHERE p.collection = e.collection AND p.type = 'page' AND p.path < e.path
+       ORDER BY p.path DESC LIMIT 1) AS previous_meta,
+      (SELECT p.toc FROM entries p
+       WHERE p.collection = e.collection AND p.type = 'page' AND p.path < e.path
+       ORDER BY p.path DESC LIMIT 1) AS previous_toc,
+      (SELECT n.path FROM entries n
+       WHERE n.collection = e.collection AND n.type = 'page' AND n.path > e.path
+       ORDER BY n.path ASC LIMIT 1) AS next_path,
+      (SELECT n.meta_or_data FROM entries n
+       WHERE n.collection = e.collection AND n.type = 'page' AND n.path > e.path
+       ORDER BY n.path ASC LIMIT 1) AS next_meta,
+      (SELECT n.toc FROM entries n
+       WHERE n.collection = e.collection AND n.type = 'page' AND n.path > e.path
+       ORDER BY n.path ASC LIMIT 1) AS next_toc
+      FROM entries e WHERE e.collection = ?`;
 
     if (this.state.path !== undefined) {
-      sql += ` AND path = ?`;
+      sql += ` AND e.path = ?`;
       params.push(this.state.path);
     }
 
-    sql += ` ORDER BY path ${this.state.order}`;
+    sql += ` ORDER BY e.path ${this.state.order}`;
 
     const limit = forcedLimit ?? this.state.limit;
     if (limit !== undefined) {

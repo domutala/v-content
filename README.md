@@ -104,6 +104,9 @@ You can use **Vue components** inside Markdown via MDC syntax.
 <script setup lang="ts">
 const doc = await queryCollection("docs").path("/docs/quick-start").first();
 const nav = await queryCollection("docs").navigation();
+
+// Adjacent pages are included automatically (null at either end).
+console.log(doc?.previous?.path, doc?.next?.path);
 </script>
 
 <template>
@@ -236,6 +239,19 @@ interface CollectionQuery<T> {
 	all(): Promise<T[]>;
 	first(): Promise<T | undefined>;
 	navigation(): Promise<NavigationItem[]>;
+}
+
+interface ResolvedPageEntry<TMeta extends PageMeta = PageMeta> {
+	// ...type, path, meta, toc and html
+	previous: PageSibling<TMeta> | null;
+	next: PageSibling<TMeta> | null;
+}
+
+interface PageSibling<TMeta extends PageMeta = PageMeta> {
+	type: "page";
+	path: string;
+	meta: TMeta;
+	toc: PageTocItem[];
 }
 
 interface NavigationItem {

@@ -37,6 +37,7 @@ export async function createClientDb(
         })
         .shift();
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return row as any;
     },
 
@@ -48,6 +49,7 @@ export async function createClientDb(
         returnValue: "resultRows",
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return rows as any;
     },
 

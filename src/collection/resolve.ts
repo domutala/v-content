@@ -17,12 +17,21 @@ import { compressCollection } from "./compressor.js";
 import { atomicWriteFile } from "../utils/atomic-write-file.js";
 import { normalizeDir } from "../utils/dir.js";
 
+export interface PageSibling<TMeta extends PageMeta = PageMeta> {
+  type: "page";
+  path: string;
+  meta: TMeta;
+  toc: PageTocItem[];
+}
+
 export interface ResolvedPageEntry<TMeta extends PageMeta = PageMeta> {
   type: "page";
   path: string;
   meta: TMeta;
   toc: PageTocItem[];
   html: string;
+  previous: PageSibling<TMeta> | null;
+  next: PageSibling<TMeta> | null;
 }
 
 export interface ResolvedDataEntry<TData = unknown> {
@@ -102,6 +111,8 @@ async function resolvePageEntry<T extends PageMeta = PageMeta>(
     meta,
     toc: vfile.data.toc ?? [],
     html: vfile.toString(),
+    previous: null,
+    next: null,
   };
 }
 

@@ -9,7 +9,7 @@ const {
   isReady,
   isLoading,
   error,
-} = useAsyncState(queryCollection("gettingStarted").navigation(), null);
+} = useAsyncState(queryCollection("docs").first(), null);
 </script>
 
 <!--
@@ -21,6 +21,8 @@ const {
 
 <template>
   <div v-if="data" class="w-3xl my-10 mx-auto space-y-5">
+    {{ data.previous?.meta }}
+    {{ data.next?.meta }}
     <UseColorMode v-slot="color">
       <u-button @click="color.mode = color.mode === 'dark' ? 'light' : 'dark'">
         Mode {{ color.mode }}
@@ -28,7 +30,7 @@ const {
     </UseColorMode>
 
     <div>
-      {{ data }}
+      <!-- {{ data }} -->
     </div>
 
     <!-- <MDC v-if="data" :value="data.html" /> -->
