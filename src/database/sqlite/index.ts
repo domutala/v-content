@@ -1,5 +1,6 @@
 import { decompressCollection } from "../../collection/compressor.js";
 import { ResolvedEntry } from "../../collection/index.js";
+import { parseHtml } from "../../mdc/parse-html.js";
 import type { Database } from "./types.js";
 
 export interface CreateDbOptions {
@@ -105,7 +106,22 @@ async function seedCollectionOnce(
     );
   `);
 
+  await db.exec(`
+    CREATE VIRTUAL TABLE IF NOT EXISTS entries_fts USING fts5(
+      collection UNINDEXED,
+      path UNINDEXED,
+      title,
+      description,
+      body,
+      tokenize = 'unicode61 remove_diacritics 2',
+      prefix = '2 3'
+    );
+  `);
+
   const entries = await decompressCollection<ResolvedEntry[]>(raw);
+
+  // Rebuild only this collection so HMR never leaves stale search documents.
+  await db.exec("DELETE FROM entries_fts WHERE collection = ?", [collectionName]);
 
   for (const entry of entries) {
     const isPage = entry.type === "page";
@@ -127,5 +143,34 @@ async function seedCollectionOnce(
         isPage ? (entry.html ?? "") : null,
       ],
     );
+
+    if (isPage) {
+      await db.exec(
+        `INSERT INTO entries_fts (collection, path, title, description, body)
+         VALUES (?, ?, ?, ?, ?)`,
+        [
+          collectionName,
+          entry.path,
+          String(entry.meta.title ?? ""),
+          String(entry.meta.description ?? ""),
+          htmlToText(entry.html ?? ""),
+        ],
+      );
+    }
   }
+}
+
+function htmlToText(html: string): string {
+  const root = parseHtml(html);
+  const chunks: string[] = [];
+
+  function visit(node: { type?: string; value?: string; children?: unknown[] }) {
+    if (node.type === "text" && node.value) chunks.push(node.value);
+    for (const child of node.children ?? []) {
+      visit(child as typeof node);
+    }
+  }
+
+  visit(root);
+  return chunks.join(" ").replace(/\s+/g, " ").trim();
 }

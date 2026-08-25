@@ -29,6 +29,10 @@ export default createUnplugin<ContentConfig | undefined>((config) => {
         name: "queryCollection",
         from: resolve(import.meta.dirname, "../collection/query.js"),
       },
+      {
+        name: "queryCollections",
+        from: resolve(import.meta.dirname, "../collection/query.js"),
+      },
     ],
   });
 
