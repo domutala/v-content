@@ -45,6 +45,7 @@ export type Plugin<
  * remark plugins consume mdast roots while rehype plugins consume hast roots.
  */
 export type PluginTuple = [
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   plugin: UnifiedPlugin<any[], any, any>,
   options?: Record<string, unknown>,
 ];
