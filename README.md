@@ -28,6 +28,7 @@ The library is built on top of:
 - **MDC (Markdown Components)** — Embed Vue components inside Markdown with props and named slots
 - **Chainable Query API** — SQL-backed queries via `queryCollection().path().first()`
 - **Auto-generated navigation** — Nested navigation trees derived from filesystem structure
+- **Full-text search** — SQLite FTS5 with weighted BM25 ranking and excerpts
 - **Isomorphic SQLite** — Server-side via `better-sqlite3`, client-side via SQLite WASM in a Web Worker
 - **Universal bundler support** — Vite, Rollup, Webpack, esbuild, Rspack, Farm, Bun, Unloader via `unplugin`
 - **Auto-generated types** — `.d.ts` files generated at build time from collection definitions
@@ -104,6 +105,9 @@ You can use **Vue components** inside Markdown via MDC syntax.
 <script setup lang="ts">
 const doc = await queryCollection("docs").path("/docs/quick-start").first();
 const nav = await queryCollection("docs").navigation();
+
+// Adjacent pages are included automatically (null at either end).
+console.log(doc?.previous?.path, doc?.next?.path);
 </script>
 
 <template>
@@ -236,6 +240,28 @@ interface CollectionQuery<T> {
 	all(): Promise<T[]>;
 	first(): Promise<T | undefined>;
 	navigation(): Promise<NavigationItem[]>;
+	search(query: string, options?: SearchOptions): Promise<SearchResult[]>;
+}
+
+interface SearchResult {
+	collection: string;
+	path: string;
+	meta: PageMeta;
+	score: number;
+	excerpt: string;
+}
+
+interface ResolvedPageEntry<TMeta extends PageMeta = PageMeta> {
+	// ...type, path, meta, toc and html
+	previous: PageSibling<TMeta> | null;
+	next: PageSibling<TMeta> | null;
+}
+
+interface PageSibling<TMeta extends PageMeta = PageMeta> {
+	type: "page";
+	path: string;
+	meta: TMeta;
+	toc: PageTocItem[];
 }
 
 interface NavigationItem {
@@ -243,6 +269,45 @@ interface NavigationItem {
 	path: string;
 	children?: NavigationItem[];
 }
+```
+
+### Full-text search
+
+Search indexes page titles, descriptions, and rendered text. Results are ranked
+with title matches weighted `10`, description matches `5`, and content matches
+`1` by default:
+
+```ts
+const results = await queryCollection("docs").limit(10).search("sqlite worker");
+
+for (const result of results) {
+	console.log(result.path, result.meta.title, result.score, result.excerpt);
+}
+```
+
+Search several collections at once with `queryCollections()`. Results from all
+selected collections are merged and ranked together; `collection` identifies
+the source of each result:
+
+```ts
+const results = await queryCollections(["docs", "blog"])
+	.limit(20)
+	.search("sqlite worker");
+
+for (const result of results) {
+	console.log(result.collection, result.path, result.score);
+}
+```
+
+Plain mode searches every word as a prefix. Advanced users can provide native
+FTS5 syntax and override ranking weights:
+
+```ts
+await queryCollection("docs").search('title:"SQLite" OR wasm', {
+	mode: "fts5",
+	weights: { title: 12, description: 4, content: 1 },
+	excerptLength: 32,
+});
 ```
 
 The `navigation()` method ignores any active filters and returns a nested tree built from all `page` entries in the collection, sorted by path ascending.
