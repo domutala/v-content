@@ -3,6 +3,14 @@
   "version": "1.4.0",
   "private": false,
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/domutala/v-content"
+  },
+  "homepage": "https://github.com/domutala/v-content#readme",
+  "bugs": {
+    "url": "https://github.com/domutala/v-content/issues"
+  },
   "type": "module",
   "exports": {
     ".": {
