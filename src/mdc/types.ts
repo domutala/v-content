@@ -24,17 +24,6 @@ export type PageMeta<
   icon?: string;
 } & T;
 
-export type PropertiesTableProps = {
-  columns: { key: string; label: string }[];
-  rows: Record<string, unknown>[];
-};
-
-declare module "hast" {
-  export interface Properties {
-    tableProps?: PropertiesTableProps;
-  }
-}
-
 export type Plugin<
   T extends object = object,
   Input extends Node = Node,

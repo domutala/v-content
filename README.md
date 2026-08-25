@@ -61,7 +61,7 @@ import vContent from "v-content/vite";
 import { defineCollection } from "v-content";
 
 export default defineConfig({
-	plugins: [
+  plugins: [
 		vue(),
 		vContent({
 			collections: {
