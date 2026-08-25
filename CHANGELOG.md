@@ -1,5 +1,11 @@
 # v-content
 
+## 1.4.1
+
+### Patch Changes
+
+- d5108b5: Always load compressed content from the Vite virtual module in both client and SSR environments.
+
 ## 1.4.0
 
 ### Minor Changes
