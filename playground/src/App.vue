@@ -21,8 +21,8 @@ const {
 
 <template>
   <div v-if="data" class="w-3xl my-10 mx-auto space-y-5">
-    {{ data.previous?.meta }}
-    {{ data.next?.meta }}
+    {{ data.previous }}
+    {{ data.next }}
     <UseColorMode v-slot="color">
       <u-button @click="color.mode = color.mode === 'dark' ? 'light' : 'dark'">
         Mode {{ color.mode }}

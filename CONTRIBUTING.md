@@ -4,7 +4,7 @@ Thank you for your interest in `v-content`! This document describes the conventi
 
 ## Prerequisites
 
-- **Node.js** `>= 20.0.0`
+- **Node.js** `>= 22.11.0` (the published library still supports Node.js 20)
 - **pnpm** `>= 11.0.0` (mandatory package manager — the repo uses pnpm workspaces)
 - **Git**
 
@@ -136,11 +136,45 @@ pnpm eslint
 ### 5. Open a Pull Request
 
 1. Push your branch to your fork
-2. Open a PR to `main` with:
+2. Add a changeset for every user-facing change:
+
+```bash
+pnpm changeset
+```
+
+Choose `patch`, `minor`, or `major`, then describe the change from the user's
+point of view. Documentation-only and internal changes may use
+`pnpm changeset --empty` when a PR check requires a changeset without a release.
+
+3. Commit the generated file from `.changeset/` with your changes.
+4. Open a PR to `main` with:
    - A clear title following the commit convention
    - A description explaining **the problem solved** or **the feature added**
    - Test instructions if necessary
    - Screenshots or logs for visual / runtime bugs
+
+## Release Workflow
+
+Changesets manages versions, changelogs, Git tags, GitHub Releases, and npm
+publication:
+
+1. Feature and fix pull requests add a file with `pnpm changeset`.
+2. After merge to `main`, GitHub Actions creates or updates the release PR.
+3. The release PR applies `pnpm version-packages`, updates `package.json` and
+   `CHANGELOG.md`, and consumes the pending changeset files.
+4. Merging the release PR publishes unpublished packages with `pnpm release`,
+   using npm Trusted Publishing, then creates the Git tag and GitHub Release.
+
+Repository maintainers must enable **Allow GitHub Actions to create and approve
+pull requests** in the GitHub Actions settings. On npm, configure a GitHub
+Actions trusted publisher for the `domutala/v-content` repository and the
+`publish.yml` workflow. No long-lived npm token is required.
+
+For a local dry run, inspect the package before publishing:
+
+```bash
+pnpm pack --dry-run
+```
 
 ## Best Practices by Domain
 
