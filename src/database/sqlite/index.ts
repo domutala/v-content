@@ -21,12 +21,16 @@ export async function createDb(
 
   let raws: Record<string, string>;
   let _token: string;
+  const isVite = typeof import.meta.env !== "undefined";
 
-  if (typeof window === "undefined") {
+  if (typeof window === "undefined" && !isVite) {
     const { config } = await import("../../init.js");
     raws = config.compresseds;
     _token = config.token;
   } else {
+    // Vite exposes the generated payload through its virtual module in both
+    // client and SSR environments. In SSR, checking `window` alone would
+    // incorrectly fall back to the process-local config.
     const _raws = await import("virtual:v-content/compressed");
 
     raws = _raws.default.compresseds;
