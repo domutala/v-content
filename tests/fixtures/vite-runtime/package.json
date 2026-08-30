@@ -1,0 +1,16 @@
+{
+  "name": "v-content-vite-runtime-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vite build && node assert-runtime.mjs"
+  },
+  "dependencies": {
+    "v-content": "workspace:*",
+    "vue": "^3.5.40"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.8",
+    "vite": "^8.1.5"
+  }
+}
