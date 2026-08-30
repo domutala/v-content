@@ -1,5 +1,11 @@
 # v-content
 
+## 1.4.2
+
+### Patch Changes
+
+- 17996ce: Parse runtime HTML directly with `hast-util-from-html` to avoid bundling Unified and its CommonJS `extend` dependency in browser components.
+
 ## 1.4.1
 
 ### Patch Changes
