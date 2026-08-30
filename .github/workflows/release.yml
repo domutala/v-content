@@ -43,8 +43,8 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Build
-        run: pnpm build
+      - name: Test
+        run: pnpm test
 
       - name: Create release pull request or publish
         uses: changesets/action@v2

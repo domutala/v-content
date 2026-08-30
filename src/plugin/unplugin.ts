@@ -46,8 +46,8 @@ export default createUnplugin<ContentConfig | undefined>((config) => {
 
   // Watch bas-niveau, indépendant du bundler. Ferme les watchers
   // précédents si on rappelle startWatch (utile en cas de re-init).
-  function startWatch(onChange: (path: string) => void) {
-    stopWatch();
+  async function startWatch(onChange: (path: string) => void) {
+    await stopWatch();
 
     sources.forEach((source) => {
       const cwd = source.cwd ? join(_config.root, source.cwd) : _config.root;
@@ -87,9 +87,11 @@ export default createUnplugin<ContentConfig | undefined>((config) => {
     });
   }
 
-  function stopWatch() {
-    watchers.forEach((w) => w.close());
+  async function stopWatch() {
+    const activeWatchers = watchers;
     watchers = [];
+
+    await Promise.all(activeWatchers.map((watcher) => watcher.close()));
   }
 
   return [
@@ -146,6 +148,10 @@ export default createUnplugin<ContentConfig | undefined>((config) => {
       name: "v-content:watch",
       enforce: "pre",
 
+      async closeBundle() {
+        await stopWatch();
+      },
+
       // Vite : websocket HMR natif
       vite: {
         async configureServer(server) {
@@ -158,7 +164,7 @@ export default createUnplugin<ContentConfig | undefined>((config) => {
             server.watcher.unwatch(join(cwd, source.include));
           });
 
-          startWatch(() => {
+          await startWatch(() => {
             // 1. Récupère le module virtuel dans le graphe de Vite
             const mod = server.moduleGraph.getModuleById(
               RESOLVED_COMPRESSED_MODULE_ID,
@@ -173,7 +179,9 @@ export default createUnplugin<ContentConfig | undefined>((config) => {
             });
           });
 
-          server.httpServer?.once("close", stopWatch);
+          server.watcher.once("close", () => {
+            void stopWatch();
+          });
         },
       },
 
@@ -184,7 +192,7 @@ export default createUnplugin<ContentConfig | undefined>((config) => {
           if (!_config) await resolveSources();
           if (watchers.length) return;
 
-          startWatch(() => {
+          await startWatch(() => {
             compiler.watching?.invalidate();
           });
         });
@@ -198,7 +206,7 @@ export default createUnplugin<ContentConfig | undefined>((config) => {
           if (!_config) await resolveSources();
           if (watchers.length) return;
 
-          startWatch(() => {
+          await startWatch(() => {
             compiler.watching?.invalidate();
           });
         });

@@ -1,10 +1,7 @@
-import { unified } from "unified";
 import type { Root } from "hast";
-import rehypeParse from "rehype-parse";
-
-const parser = unified().use(rehypeParse, { fragment: true });
+import { fromHtml } from "hast-util-from-html";
 
 /** Parses MDC-compiled HTML back into a hast tree for dynamic rendering. */
 export function parseHtml(html: string): Root {
-  return parser.parse(html) as Root;
+  return fromHtml(html, { fragment: true });
 }
