@@ -1,6 +1,36 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { htmlToText } from "v-content";
+
+const plainText = htmlToText(`
+  <article data-search-leak="attribute-token">
+    <h1>Visible title</h1>
+    <script>script-token</script>
+    <style>.style-token { color: red }</style>
+    <p>Hello <strong>world</strong><br>next line</p>
+  </article>
+`);
+
+for (const visible of ["Visible title", "Hello world", "next line"]) {
+  if (!plainText.includes(visible)) {
+    throw new Error(`Plain text is missing visible content: ${visible}`);
+  }
+}
+
+for (const hidden of [
+  "article",
+  "data-search-leak",
+  "attribute-token",
+  "script-token",
+  "style-token",
+  "strong",
+]) {
+  if (plainText.includes(hidden)) {
+    throw new Error(`Plain text unexpectedly contains markup: ${hidden}`);
+  }
+}
+
 const assetsDir = new URL("./dist/assets/", import.meta.url);
 const files = (await readdir(assetsDir)).filter((file) => file.endsWith(".js"));
 

@@ -1,6 +1,6 @@
 import { decompressCollection } from "../../collection/compressor.js";
 import { ResolvedEntry } from "../../collection/index.js";
-import { parseHtml } from "../../mdc/parse-html.js";
+import { htmlToText } from "../../mdc/html-to-text.js";
 import type { Database } from "./types.js";
 
 export interface CreateDbOptions {
@@ -162,19 +162,4 @@ async function seedCollectionOnce(
       );
     }
   }
-}
-
-function htmlToText(html: string): string {
-  const root = parseHtml(html);
-  const chunks: string[] = [];
-
-  function visit(node: { type?: string; value?: string; children?: unknown[] }) {
-    if (node.type === "text" && node.value) chunks.push(node.value);
-    for (const child of node.children ?? []) {
-      visit(child as typeof node);
-    }
-  }
-
-  visit(root);
-  return chunks.join(" ").replace(/\s+/g, " ").trim();
 }
