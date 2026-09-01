@@ -1,5 +1,11 @@
 # v-content
 
+## 1.4.3
+
+### Patch Changes
+
+- 58d0df7: Index only visible page text for full-text search, excluding HTML markup, attributes, scripts, and styles.
+
 ## 1.4.2
 
 ### Patch Changes
