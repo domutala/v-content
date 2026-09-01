@@ -1,6 +1,6 @@
 import { decompressCollection } from "../../collection/compressor.js";
 import { ResolvedEntry } from "../../collection/index.js";
-import { parseHtml } from "../../mdc/parse-html.js";
+import { htmlToText } from "../../mdc/html-to-text.js";
 import type { Database } from "./types.js";
 
 export interface CreateDbOptions {
@@ -21,12 +21,16 @@ export async function createDb(
 
   let raws: Record<string, string>;
   let _token: string;
+  const isVite = typeof import.meta.env !== "undefined";
 
-  if (typeof window === "undefined") {
+  if (typeof window === "undefined" && !isVite) {
     const { config } = await import("../../init.js");
     raws = config.compresseds;
     _token = config.token;
   } else {
+    // Vite exposes the generated payload through its virtual module in both
+    // client and SSR environments. In SSR, checking `window` alone would
+    // incorrectly fall back to the process-local config.
     const _raws = await import("virtual:v-content/compressed");
 
     raws = _raws.default.compresseds;
@@ -158,19 +162,4 @@ async function seedCollectionOnce(
       );
     }
   }
-}
-
-function htmlToText(html: string): string {
-  const root = parseHtml(html);
-  const chunks: string[] = [];
-
-  function visit(node: { type?: string; value?: string; children?: unknown[] }) {
-    if (node.type === "text" && node.value) chunks.push(node.value);
-    for (const child of node.children ?? []) {
-      visit(child as typeof node);
-    }
-  }
-
-  visit(root);
-  return chunks.join(" ").replace(/\s+/g, " ").trim();
 }
